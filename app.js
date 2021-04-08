@@ -18,6 +18,8 @@ app.use(cors());
 app.use('/users', usersRouter);
 app.use('/notes', notesRouter);
 
+
+//app.use(express.static('public'));
 //LUAN
 /**
  * Listen on provided port, on all network interfaces.

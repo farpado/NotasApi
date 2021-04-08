@@ -3,13 +3,14 @@ var router = express.Router();
 const User = require('../models/user.js');
 const jwt = require('jsonwebtoken');
 const withAuth = require('../middlewares/auth.js');
+const imageMiddlewares = require('../middlewares/imageMiddlewares.js');
 require('dotenv').config();
 
 const secret = process.env.JWT_TOKEN;
 
 router.post('/register', async function(req, res) {
-  const { name, email, password } = req.body;
-  const user = new User({ name, email, password });
+  const { name, email, password, photo } = req.body;
+  const user = new User({ name, email, password, photo });
 
   try {
     await user.save()
@@ -41,13 +42,18 @@ router.post('/login', async function(req, res) {
     }
 });
 
-router.put('/', withAuth, async function(req,res){
-  const { name, email } = req.body;
+router.put('/',
+  withAuth, 
+  imageMiddlewares.upload,//
+  imageMiddlewares.resize,//
+
+  async function(req,res){
+    const { name, email, photo } = req.body;
 
   try {
     var user = await User.findOneAndUpdate(
       {_id: req.user._id},
-      { $set: { name:name, email:email } },
+      { $set: { name:name, email:email, photo:photo } },
       { upsert: true, 'new':true}
     );
     res.json(user);
