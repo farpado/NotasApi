@@ -4,13 +4,49 @@ const User = require('../models/user.js');
 const jwt = require('jsonwebtoken');
 const withAuth = require('../middlewares/auth.js');
 const imageMiddlewares = require('../middlewares/imageMiddlewares.js');
+const multerConfig = require('../../config/multer');
+const multer = require('multer');
+const Post = require('../models/Post.js');
+const fs = require("fs");
 require('dotenv').config();
 
+
+const cors = require('cors');
+
+
+const app = express();
+
+app.use(cors());
 const secret = process.env.JWT_TOKEN;
 
+//router.post('/users/1/avatar') // só grava o avatar
+//router.put('/users/1') //atualiza os dados (nome, nascimento, endereco) do usuário
+//router.put('/users/1/password') //atualiza apenas a senha do usuário
+
+router.post('/posts', multer(multerConfig).single('file'), async (req,res) =>{
+//console.log('ioioioio', req.body.nomeUsuario)
+// Reads file in form buffer => <Buffer ff d8 ff db 00 43 00 ...
+//const base64 = req.body.imagemDoUsuario64;
+//const buffer = Buffer.from(base64.split(',')[1], "base64");
+//fs.writeFileSync(__dirname + "/../../public/images/avatar/aaaaaaaaaaaaa.jpg", buffer);
+
+  /// ANTES
+  const { originalname: name, size, filename: file, location: url = "" } = req.file;
+  const pathImage = '/images/avatar/' + file;
+
+  //const post = await Post.create({ name,size,file, url });
+
+  res.send({
+    file: req.file,
+    caminho: pathImage
+  });
+
+ 
+});
+
 router.post('/register', async function(req, res) {
-  const { name, email, password, photo } = req.body;
-  const user = new User({ name, email, password, photo });
+  const { name, email, password } = req.body;
+  const user = new User({ name, email, password });
 
   try {
     await user.save()
@@ -42,24 +78,20 @@ router.post('/login', async function(req, res) {
     }
 });
 
-router.put('/',
-  withAuth, 
-  imageMiddlewares.upload,//
-  imageMiddlewares.resize,//
-
-  async function(req,res){
-    const { name, email, photo } = req.body;
+router.put('/', withAuth, async function(req,res){
+    const { name, email} = req.body;
 
   try {
     var user = await User.findOneAndUpdate(
       {_id: req.user._id},
-      { $set: { name:name, email:email, photo:photo } },
+      { $set: { name:name, email:email } },
       { upsert: true, 'new':true}
     );
     res.json(user);
   } catch (error) {
     res.status(401).json({error: error});
   }
+
 });
 
 

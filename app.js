@@ -15,8 +15,13 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(cors());
 
+app.use('./tmp/uploads', express.static('uploads'));
+
 app.use('/users', usersRouter);
 app.use('/notes', notesRouter);
+
+app.use(require('./app/routes/users'));
+
 
 
 //app.use(express.static('public'));
